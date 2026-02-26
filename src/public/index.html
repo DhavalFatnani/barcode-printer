@@ -1,0 +1,179 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Barcode Printer</title>
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+      background: #f5f7fa;
+      color: #1a1a2e;
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+    }
+    header {
+      width: 100%;
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      color: white;
+      padding: 2rem;
+      text-align: center;
+    }
+    header h1 { font-size: 2rem; font-weight: 700; }
+    header p { margin-top: 0.5rem; opacity: 0.9; }
+    main {
+      width: 100%;
+      max-width: 600px;
+      padding: 2rem 1rem;
+    }
+    .card {
+      background: white;
+      border-radius: 12px;
+      box-shadow: 0 4px 24px rgba(0,0,0,0.08);
+      padding: 2rem;
+      margin-bottom: 2rem;
+    }
+    label {
+      display: block;
+      font-weight: 600;
+      margin-bottom: 0.5rem;
+      font-size: 0.9rem;
+      color: #444;
+    }
+    input, select {
+      width: 100%;
+      padding: 0.75rem 1rem;
+      border: 2px solid #e0e0e0;
+      border-radius: 8px;
+      font-size: 1rem;
+      transition: border-color 0.2s;
+      margin-bottom: 1rem;
+    }
+    input:focus, select:focus {
+      outline: none;
+      border-color: #667eea;
+    }
+    button {
+      width: 100%;
+      padding: 0.875rem;
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      color: white;
+      border: none;
+      border-radius: 8px;
+      font-size: 1rem;
+      font-weight: 600;
+      cursor: pointer;
+      transition: opacity 0.2s, transform 0.1s;
+    }
+    button:hover { opacity: 0.9; }
+    button:active { transform: scale(0.98); }
+    #result {
+      text-align: center;
+      margin-top: 1.5rem;
+    }
+    #result img {
+      max-width: 100%;
+      border: 1px solid #e0e0e0;
+      border-radius: 8px;
+      padding: 1rem;
+      background: white;
+    }
+    #error {
+      color: #e74c3c;
+      margin-top: 1rem;
+      font-weight: 500;
+    }
+    .options-row {
+      display: flex;
+      gap: 1rem;
+    }
+    .options-row > div { flex: 1; }
+  </style>
+</head>
+<body>
+  <header>
+    <h1>Barcode Printer</h1>
+    <p>Generate barcodes in various formats</p>
+  </header>
+  <main>
+    <div class="card">
+      <label for="text">Barcode Content</label>
+      <input type="text" id="text" placeholder="Enter text or number..." value="Hello World 123" />
+
+      <label for="format">Format</label>
+      <select id="format">
+        <option value="code128" selected>Code 128</option>
+        <option value="code39">Code 39</option>
+        <option value="qrcode">QR Code</option>
+        <option value="ean13">EAN-13</option>
+        <option value="ean8">EAN-8</option>
+        <option value="upca">UPC-A</option>
+        <option value="datamatrix">Data Matrix</option>
+        <option value="pdf417">PDF417</option>
+      </select>
+
+      <div class="options-row">
+        <div>
+          <label for="scale">Scale</label>
+          <input type="number" id="scale" value="3" min="1" max="10" />
+        </div>
+        <div>
+          <label for="height">Height</label>
+          <input type="number" id="height" value="10" min="5" max="50" />
+        </div>
+      </div>
+
+      <button id="generate">Generate Barcode</button>
+
+      <div id="error"></div>
+      <div id="result"></div>
+    </div>
+  </main>
+
+  <script>
+    const btn = document.getElementById("generate");
+    const result = document.getElementById("result");
+    const errorEl = document.getElementById("error");
+
+    btn.addEventListener("click", async () => {
+      errorEl.textContent = "";
+      result.innerHTML = "";
+
+      const text = document.getElementById("text").value.trim();
+      const format = document.getElementById("format").value;
+      const scale = parseInt(document.getElementById("scale").value, 10);
+      const height = parseInt(document.getElementById("height").value, 10);
+
+      if (!text) {
+        errorEl.textContent = "Please enter barcode content.";
+        return;
+      }
+
+      try {
+        const res = await fetch("/api/barcode/generate", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ text, format, scale, height, includetext: true }),
+        });
+
+        if (!res.ok) {
+          const data = await res.json();
+          throw new Error(data.error || "Failed to generate barcode");
+        }
+
+        const blob = await res.blob();
+        const url = URL.createObjectURL(blob);
+        const img = document.createElement("img");
+        img.src = url;
+        img.alt = "Generated barcode";
+        result.appendChild(img);
+      } catch (err) {
+        errorEl.textContent = err.message;
+      }
+    });
+  </script>
+</body>
+</html>

@@ -1,0 +1,37 @@
+{
+  "name": "barcode-printer",
+  "version": "1.0.0",
+  "description": "A web application for generating and printing barcodes",
+  "main": "dist/index.js",
+  "scripts": {
+    "dev": "tsx watch src/index.ts",
+    "build": "tsc",
+    "start": "node dist/index.js",
+    "lint": "eslint src/",
+    "test": "jest --forceExit"
+  },
+  "keywords": [
+    "barcode",
+    "printer",
+    "generator"
+  ],
+  "license": "MIT",
+  "dependencies": {
+    "bwip-js": "^4.8.0",
+    "express": "^5.2.1"
+  },
+  "devDependencies": {
+    "@types/bwip-js": "^3.2.3",
+    "@types/express": "^5.0.6",
+    "@types/jest": "^30.0.0",
+    "@types/node": "^25.3.2",
+    "@types/supertest": "^7.2.0",
+    "eslint": "^10.0.2",
+    "jest": "^30.2.0",
+    "supertest": "^7.2.2",
+    "ts-jest": "^29.4.6",
+    "tsx": "^4.21.0",
+    "typescript": "^5.9.3",
+    "typescript-eslint": "^8.56.1"
+  }
+}
