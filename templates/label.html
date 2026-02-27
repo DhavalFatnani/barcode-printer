@@ -1,0 +1,149 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Barcode Label</title>
+  <script src="js/JsBarcode.all.min.js"></script>
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    html, body {
+      margin: 0;
+      padding: 0;
+      width: 100%;
+      height: 100%;
+      background: #fff;
+    }
+    @media print {
+      html, body { margin: 0; padding: 0; }
+      body { -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+      .label-page { page-break-after: always; }
+    }
+    .label-page {
+      width: 4in;
+      height: 2in;
+      padding: 0.2in;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      font-family: sans-serif;
+      border: 1px dotted #ccc;
+      background: #fff;
+    }
+    .label-page .barcode-wrap {
+      margin-bottom: 0;
+      flex-shrink: 0;
+      width: 100%;
+      height: 1.25in;
+      min-height: 1.25in;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      overflow: visible;
+    }
+    .label-page .barcode-wrap img {
+      max-width: 100%;
+      max-height: 100%;
+      width: auto;
+      height: auto;
+      min-height: 0.9in;
+      display: block;
+      object-fit: contain;
+      object-position: center;
+    }
+    .label-page .barcode-wrap svg {
+      max-width: 100%;
+      max-height: 100%;
+      width: auto;
+      height: auto;
+      display: block;
+    }
+    .label-page .barcode-text {
+      font-size: 12px;
+      letter-spacing: 0.05em;
+      word-break: break-all;
+      text-align: center;
+      flex-shrink: 0;
+    }
+  </style>
+</head>
+<body>
+  <div class="label-page">
+    <div class="barcode-wrap">
+      <img id="barcode" alt="" />
+    </div>
+    <div class="barcode-text" id="barcode-text"></div>
+  </div>
+  <script>
+    (function () {
+      const params = new URLSearchParams(window.location.search);
+      const barcode = params.get('barcode') || '';
+      const pageW = parseFloat(params.get('lpw')) || 4;
+      const pageH = parseFloat(params.get('lph')) || 2;
+      const barW = Math.max(1, Math.min(4, parseInt(params.get('bw'), 10) || 2));
+      const barH = Math.max(20, Math.min(120, parseInt(params.get('bh'), 10) || 50));
+      const marginT = parseFloat(params.get('mt')) ?? 0.2;
+      const marginR = parseFloat(params.get('mr')) ?? 0.2;
+      const marginB = parseFloat(params.get('mb')) ?? 0.2;
+      const marginL = parseFloat(params.get('ml')) ?? 0.2;
+      const alignH = params.get('ah') || 'center';
+      const alignV = params.get('av') || 'middle';
+      const showText = params.get('st') === '1';
+      const textFontSizePx = Math.max(8, Math.min(40, parseInt(params.get('fs'), 10) || 12));
+      const textFontFamily = params.get('font') || 'sans-serif';
+      const textBold = params.get('bold') === '1';
+      const textItalic = params.get('italic') === '1';
+      const textUnderline = params.get('ul') === '1';
+      const textGapPx = Math.max(0, Math.min(24, parseInt(params.get('tgap'), 10) || 0));
+      const showBorder = params.get('bd') === '1';
+      const orientation = params.get('orient') || 'portrait';
+      const isLandscape = orientation === 'landscape';
+      const pageWidthIn = isLandscape ? pageH : pageW;
+      const pageHeightIn = isLandscape ? pageW : pageH;
+
+      const pageEl = document.querySelector('.label-page');
+      const wrapEl = document.querySelector('.barcode-wrap');
+      const textEl = document.getElementById('barcode-text');
+      const imgEl = document.getElementById('barcode');
+
+      pageEl.style.width = pageWidthIn + 'in';
+      pageEl.style.height = pageHeightIn + 'in';
+      pageEl.style.padding = marginT + 'in ' + marginR + 'in ' + marginB + 'in ' + marginL + 'in';
+      pageEl.style.flexDirection = 'column';
+      pageEl.style.alignItems = alignH === 'left' ? 'flex-start' : alignH === 'right' ? 'flex-end' : 'center';
+      pageEl.style.justifyContent = alignV === 'top' ? 'flex-start' : alignV === 'bottom' ? 'flex-end' : 'center';
+      pageEl.style.border = showBorder ? '1px dashed #999' : 'none';
+      wrapEl.style.minHeight = (barH / 96) + 'in';
+      textEl.style.display = showText ? 'block' : 'none';
+      textEl.style.marginTop = textGapPx + 'px';
+      textEl.style.fontSize = textFontSizePx + 'px';
+      textEl.style.fontFamily = textFontFamily;
+      textEl.style.fontWeight = textBold ? 'bold' : 'normal';
+      textEl.style.fontStyle = textItalic ? 'italic' : 'normal';
+      textEl.style.textDecoration = textUnderline ? 'underline' : 'none';
+      textEl.textContent = barcode;
+
+      try {
+        const canvas = document.createElement('canvas');
+        JsBarcode(canvas, barcode, {
+          format: 'CODE128',
+          width: barW,
+          height: barH,
+          displayValue: false,
+          margin: 8,
+          lineColor: '#000000',
+        });
+        imgEl.src = canvas.toDataURL('image/png');
+        imgEl.alt = barcode;
+        imgEl.onload = function () { window.barcodeRendered = true; };
+        if (imgEl.complete) window.barcodeRendered = true;
+      } catch (e) {
+        textEl.textContent = barcode || '(invalid)';
+        textEl.style.display = 'block';
+        window.barcodeRendered = true;
+      }
+    })();
+  </script>
+</body>
+</html>

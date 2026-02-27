@@ -1,0 +1,58 @@
+{
+  "name": "barcode-printer",
+  "version": "1.0.0",
+  "description": "Warehouse barcode scanner to label printer – start print session, scan and print directly",
+  "main": "main/main.js",
+  "author": "KNOT",
+  "license": "MIT",
+  "scripts": {
+    "start": "electron .",
+    "build": "node scripts/copy-jsbarcode.js && npx electron-builder",
+    "build:mac": "node scripts/copy-jsbarcode.js && npx electron-builder --mac",
+    "build:win": "node scripts/build-win.js",
+    "postinstall": "node scripts/copy-jsbarcode.js",
+    "build:win:arm64": "node scripts/build-win-arm64.js"
+  },
+  "keywords": [
+    "barcode",
+    "printer",
+    "scanner",
+    "warehouse",
+    "label"
+  ],
+  "devDependencies": {
+    "electron": "^28.0.0",
+    "electron-builder": "^24.13.3",
+    "jsbarcode": "^3.11.6"
+  },
+  "build": {
+    "appId": "com.knot.barcode-printer",
+    "productName": "BarcodePrinter",
+    "directories": {
+      "output": "dist"
+    },
+    "mac": {
+      "category": "public.app-category.utilities",
+      "target": [
+        "dmg",
+        "zip"
+      ],
+      "hardenedRuntime": true,
+      "gatekeeperAssess": false
+    },
+    "win": {
+      "target": [
+        "nsis",
+        "portable"
+      ],
+      "executableName": "BarcodePrinter"
+    },
+    "nsis": {
+      "oneClick": true,
+      "allowToChangeInstallationDirectory": false,
+      "shortcutName": "Barcode Printer",
+      "createDesktopShortcut": true,
+      "createStartMenuShortcut": true
+    }
+  }
+}

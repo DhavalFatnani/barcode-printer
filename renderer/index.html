@@ -1,0 +1,274 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Barcode Printer</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=DM+Sans:ital,opsz,wght@0,9..40,400;0,9..40,500;0,9..40,600;0,9..40,700;1,9..40,400&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="styles.css" />
+</head>
+<body>
+  <div class="app">
+    <!-- Main view: Print -->
+    <div id="view-main" class="view view-active">
+      <header class="app-header">
+        <div class="app-header-inner">
+          <div class="app-brand">
+            <span class="app-logo" aria-hidden="true"></span>
+            <div>
+              <h1 class="app-title">Barcode Printer</h1>
+              <p class="app-tagline">Scan · Print · Done</p>
+            </div>
+          </div>
+        </div>
+      </header>
+
+      <main class="app-main">
+        <div class="app-grid app-grid-main">
+          <section class="card card-session">
+            <div class="card-head">
+              <h2 class="card-title">Session</h2>
+              <div class="card-actions">
+                <button type="button" id="btn-start" class="btn btn-primary">Start print</button>
+                <button type="button" id="btn-stop" class="btn btn-danger" disabled>Stop</button>
+              </div>
+            </div>
+            <p class="session-status" id="status" aria-live="polite">Ready. Click &quot;Start print&quot; to scan.</p>
+            <p class="session-last" id="last-scan"></p>
+            <p class="session-count" id="session-count" aria-live="polite"></p>
+          </section>
+
+          <section class="card card-scan">
+            <label for="scan-input" class="scan-label">Barcode input</label>
+            <div class="scan-wrap">
+              <input
+                type="text"
+                id="scan-input"
+                class="scan-input"
+                placeholder="Scan here when session is active"
+                autocomplete="off"
+                aria-label="Barcode scan input"
+              />
+            </div>
+            <p class="scan-hint" id="scan-hint">Start a session, then scan or type a barcode and press Enter.</p>
+          </section>
+
+          <section class="card card-printer panel panel-printer">
+            <h2 class="card-title panel-title">Printer</h2>
+            <div class="form-group">
+              <label for="printer-mode">Mode</label>
+              <select id="printer-mode">
+                <option value="system">System (USB, Bluetooth)</option>
+                <option value="zpl">ZPL (Zebra / network)</option>
+              </select>
+            </div>
+            <div id="printer-list-wrap" class="form-group">
+              <label for="printer-list">Printer</label>
+              <select id="printer-list">
+                <option value="">Default printer</option>
+              </select>
+              <p class="form-hint printer-hint">Pair Bluetooth in system settings, then select here.</p>
+            </div>
+            <div id="zpl-ip-wrap" class="form-group hidden">
+              <label for="zpl-ip">Printer IP (port 9100)</label>
+              <input type="text" id="zpl-ip" placeholder="192.168.1.100" />
+            </div>
+            <div class="form-group form-group-check">
+              <label class="checkbox">
+                <input type="checkbox" id="test-mode-pdf" />
+                <span>Test mode: save as PDF</span>
+              </label>
+            </div>
+          </section>
+
+          <section class="card card-actions-card">
+            <h2 class="card-title">Label</h2>
+            <p class="card-desc">Set page size, margins, and where the barcode appears.</p>
+            <button type="button" id="btn-open-layout" class="btn btn-primary btn-block">
+              Open label layout
+            </button>
+          </section>
+        </div>
+      </main>
+    </div>
+
+    <!-- Layout view: Label layout screen -->
+    <div id="view-layout" class="view">
+      <header class="app-header layout-header">
+        <div class="app-header-inner">
+          <button type="button" id="btn-back" class="btn btn-ghost btn-back" aria-label="Back to print">← Back</button>
+          <div class="app-brand">
+            <h1 class="app-title layout-title">Label layout</h1>
+            <p class="app-tagline">The canvas below is your label at actual size — drag to arrange.</p>
+          </div>
+        </div>
+      </header>
+
+      <main class="layout-main">
+        <div class="layout-canvas-area">
+          <div class="layout-canvas-wrap">
+            <div class="layout-canvas-bar">
+              <span class="layout-canvas-label">Drag the barcode block to position it</span>
+              <label for="layout-canvas-zoom" class="layout-zoom-label">Zoom</label>
+              <select id="layout-canvas-zoom" class="layout-zoom-select" aria-label="Canvas zoom">
+                <option value="fit" selected>Fit</option>
+                <option value="50">50%</option>
+                <option value="75">75%</option>
+                <option value="100">100% (actual size)</option>
+                <option value="125">125%</option>
+                <option value="150">150%</option>
+              </select>
+            </div>
+            <div class="layout-canvas" id="layout-canvas">
+              <div class="layout-canvas-scaler" id="layout-canvas-scaler">
+                <div class="layout-canvas-page" id="layout-canvas-page">
+                  <div class="layout-canvas-content" id="layout-canvas-content">
+                    <div class="layout-canvas-block" id="layout-canvas-block" draggable="false">
+                      <div class="layout-canvas-barcode-wrap" id="layout-canvas-barcode-wrap">
+                        <img id="layout-canvas-barcode-img" alt="" />
+                        <span class="resize-handle resize-handle-bottom" id="resize-handle-h" title="Resize height"></span>
+                        <span class="resize-handle resize-handle-right" id="resize-handle-w" title="Resize width"></span>
+                      </div>
+                      <span class="layout-canvas-text" id="layout-canvas-text"></span>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+            <p class="layout-canvas-caption" id="layout-canvas-caption">Actual size</p>
+          </div>
+        </div>
+
+        <aside class="layout-toolbar">
+          <div class="toolbar-group">
+            <span class="toolbar-group-title">Page size</span>
+            <div class="chips layout-preset-chips">
+              <button type="button" class="chip layout-chip" data-w="4" data-h="2">4 × 2</button>
+              <button type="button" class="chip layout-chip" data-w="2" data-h="1">2 × 1</button>
+              <button type="button" class="chip layout-chip" data-w="3" data-h="2">3 × 2</button>
+              <button type="button" class="chip layout-chip" data-w="1.5" data-h="1">1.5 × 1</button>
+            </div>
+          </div>
+          <div class="toolbar-group">
+            <span class="toolbar-group-title">Page</span>
+            <div class="layout-row">
+              <label for="layout-orientation">Orientation</label>
+              <select id="layout-orientation">
+                <option value="portrait">Portrait</option>
+                <option value="landscape">Landscape</option>
+              </select>
+            </div>
+            <p class="toolbar-hint">Width × Height = label size. Landscape rotates the label 90°.</p>
+            <div class="layout-row">
+              <label for="layout-page-width">Width (in)</label>
+              <input type="number" id="layout-page-width" min="1" max="8" step="0.25" />
+            </div>
+            <div class="layout-row">
+              <label for="layout-page-height">Height (in)</label>
+              <input type="number" id="layout-page-height" min="0.5" max="6" step="0.25" />
+            </div>
+            <div class="layout-row">
+              <label>Margins (in)</label>
+              <div class="margins">
+                <input type="number" id="layout-margin-top" min="0" max="1" step="0.05" placeholder="T" title="Top" />
+                <input type="number" id="layout-margin-right" min="0" max="1" step="0.05" placeholder="R" title="Right" />
+                <input type="number" id="layout-margin-bottom" min="0" max="1" step="0.05" placeholder="B" title="Bottom" />
+                <input type="number" id="layout-margin-left" min="0" max="1" step="0.05" placeholder="L" title="Left" />
+              </div>
+            </div>
+          </div>
+          <div class="toolbar-group">
+            <span class="toolbar-group-title">Barcode</span>
+            <div class="layout-row layout-row-range">
+              <label for="layout-barcode-width">Bar width <output id="layout-barcode-width-out">2</output></label>
+              <input type="range" id="layout-barcode-width" min="1" max="4" step="1" />
+            </div>
+            <div class="layout-row layout-row-range">
+              <label for="layout-barcode-height">Height <output id="layout-barcode-height-out">50</output> px</label>
+              <input type="range" id="layout-barcode-height" min="20" max="120" step="5" />
+            </div>
+          </div>
+          <div class="toolbar-group toolbar-group--full">
+            <span class="toolbar-group-title">Position</span>
+            <div class="layout-row align-row">
+              <label for="layout-align-h">Horizontal</label>
+              <input type="hidden" id="layout-align-h" value="center" />
+              <div class="segmented align-group-h" role="group" aria-label="Horizontal alignment">
+                <button type="button" class="segmented-btn layout-opt-btn" data-axis="h" data-value="left">Left</button>
+                <button type="button" class="segmented-btn layout-opt-btn active" data-axis="h" data-value="center">Center</button>
+                <button type="button" class="segmented-btn layout-opt-btn" data-axis="h" data-value="right">Right</button>
+              </div>
+            </div>
+            <div class="layout-row align-row">
+              <label for="layout-align-v">Vertical</label>
+              <input type="hidden" id="layout-align-v" value="middle" />
+              <div class="segmented align-group-v" role="group" aria-label="Vertical alignment">
+                <button type="button" class="segmented-btn layout-opt-btn" data-axis="v" data-value="top">Top</button>
+                <button type="button" class="segmented-btn layout-opt-btn active" data-axis="v" data-value="middle">Middle</button>
+                <button type="button" class="segmented-btn layout-opt-btn" data-axis="v" data-value="bottom">Bottom</button>
+              </div>
+            </div>
+          </div>
+          <div class="toolbar-group toolbar-group--full">
+            <span class="toolbar-group-title">Text &amp; appearance</span>
+            <div class="layout-row layout-row-check">
+              <label class="checkbox">
+                <input type="checkbox" id="layout-show-text" />
+                <span>Show text below barcode</span>
+              </label>
+            </div>
+            <div class="layout-row">
+              <label for="layout-font">Font</label>
+              <select id="layout-font">
+                <option value="sans-serif">Sans-serif</option>
+                <option value="Arial, sans-serif">Arial</option>
+                <option value="Helvetica, sans-serif">Helvetica</option>
+                <option value="Verdana, sans-serif">Verdana</option>
+                <option value="'Times New Roman', serif">Times New Roman</option>
+                <option value="Georgia, serif">Georgia</option>
+                <option value="Courier, monospace">Courier</option>
+                <option value="'Courier New', monospace">Courier New</option>
+              </select>
+            </div>
+            <div class="layout-row layout-row-range">
+              <label for="layout-text-size">Text size <output id="layout-text-size-out">12</output> px</label>
+              <input type="range" id="layout-text-size" min="8" max="40" step="1" />
+            </div>
+            <div class="layout-row layout-row-range">
+              <label for="layout-text-gap">Gap below barcode <output id="layout-text-gap-out">0</output> px</label>
+              <input type="range" id="layout-text-gap" min="0" max="24" step="1" />
+            </div>
+            <div class="layout-row layout-row-check layout-row-check-inline">
+              <label class="checkbox">
+                <input type="checkbox" id="layout-text-bold" />
+                <span>Bold</span>
+              </label>
+              <label class="checkbox">
+                <input type="checkbox" id="layout-text-italic" />
+                <span>Italic</span>
+              </label>
+              <label class="checkbox">
+                <input type="checkbox" id="layout-text-underline" />
+                <span>Underline</span>
+              </label>
+            </div>
+            <div class="layout-row layout-row-check">
+              <label class="checkbox">
+                <input type="checkbox" id="layout-show-border" />
+                <span>Show border (cutting guide)</span>
+              </label>
+            </div>
+          </div>
+          <div class="layout-footer">
+            <button type="button" class="btn btn-ghost" id="layout-reset">Reset to defaults</button>
+          </div>
+        </aside>
+      </main>
+    </div>
+  </div>
+  <script src="../templates/js/JsBarcode.all.min.js"></script>
+  <script src="app.js"></script>
+</body>
+</html>
