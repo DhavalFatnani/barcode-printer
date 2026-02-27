@@ -4,3 +4,5 @@ dist/
 .DS_Store
 build/*.pfx
 *.pfx
+SUGGESTIONS.md
+INSTALL.md
